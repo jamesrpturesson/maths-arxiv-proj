@@ -13,6 +13,8 @@ user = "maths-arxiv-proj/0.1"
 
 RESULTS = Path("results")
 RESULTS.mkdir(exist_ok=True)
+CATEGORIES = Path("categories")
+CATEGORIES.mkdir(exist_ok=True)
 
 MAX_PAGES = 5
 
@@ -48,7 +50,7 @@ def generate_results():
     
     for i, txml in enumerate(grab_results()):
         path = RESULTS / f"results-{i:04d}.xml"
-        print("Writing to" + str(path))
+        print(f"Writing to results-{i:04d}.xml")
         with open(path, "w", encoding="utf-8") as rf:
             rf.write(txml)
 
@@ -90,27 +92,29 @@ def grab_list_set():
         time.sleep(3)
 
 def generate_list_set():
-    r = ""
-    for t in grab_list_set():
-        r += t
     cat_dict = {}
-    root = ET.fromstring(r)
+    for i, s in enumerate(grab_list_set()):
 
-    print("Writing to sets.xml")
-    with open("sets.xml", "w", encoding="utf-8") as rf:
-        rf.write(r)
+        path = CATEGORIES / f"sets-{i:02d}.xml"
 
-    for st in root.findall(f".//{OA}set"):
-        spec = st.find(f"{OA}setSpec").text
-        name = st.find(f"{OA}setName").text
-        hierarchy = spec.split(":")
-        if len(hierarchy) == 3:
-            cat_dict[f"{hierarchy[1]}.{hierarchy[2]}"] = name
-        else:
-            cat_dict[f"{hierarchy[-1]}"] = name
+        print(f"Writing to sets-{i:02d}.xml")
+        with open(path, "w", encoding="utf-8") as rf:
+            rf.write(s)
+        
+        root = ET.fromstring(s)
+        
+        for st in root.findall(f".//{OA}set"):
+            spec = st.find(f"{OA}setSpec").text
+            name = st.find(f"{OA}setName").text
+            hierarchy = spec.split(":")
+            if len(hierarchy) == 3:
+                cat_dict[f"{hierarchy[1]}.{hierarchy[2]}"] = name
+            else:
+                cat_dict[f"{hierarchy[-1]}"] = name
 
+    path = CATEGORIES / "categories.json"
     print("Writing to categories.json")
-    with open("categories.json", "w", encoding="utf-8") as cf:
+    with open(path, "w", encoding="utf-8") as cf:
         json.dump(cat_dict, cf, indent=2, ensure_ascii=False)
 
 generate_results()
