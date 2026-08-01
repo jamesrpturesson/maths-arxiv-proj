@@ -16,7 +16,7 @@ RESULTS.mkdir(exist_ok=True)
 CATEGORIES = Path("categories")
 CATEGORIES.mkdir(exist_ok=True)
 
-MAX_PAGES = 5
+MAX_PAGES = 2
 
 def grab_results():
     params = {"verb": "ListRecords", "set": "math", "metadataPrefix": "arXiv"}
@@ -46,13 +46,22 @@ def grab_results():
             }
         time.sleep(3)
 
+def clear_results():
+    print("Clearing previous results.")
+    num = len(list(RESULTS.glob("results-*.xml")))
+    for path in RESULTS.glob("results-*.xml"):
+        path.unlink()
+    print(f"Removed {num} files from results/.")
+
 def generate_results():
-    
+    clear_results()
     for i, txml in enumerate(grab_results()):
         path = RESULTS / f"results-{i:04d}.xml"
         print(f"Writing to results-{i:04d}.xml")
         with open(path, "w", encoding="utf-8") as rf:
             rf.write(txml)
+    print("Finished writing results. ")
+    print(f"Wrote {len(list(RESULTS.glob("results-*.xml")))} files.")
 
     #record_list = root.findall(f".//{OA}record")
     #spec_counter = Counter()
