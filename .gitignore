@@ -2,5 +2,4 @@
 __pycache__/
 results/
 categories/
-categories.json
-sets.xml
+records.jsonl

@@ -16,7 +16,7 @@ RESULTS.mkdir(exist_ok=True)
 CATEGORIES = Path("categories")
 CATEGORIES.mkdir(exist_ok=True)
 
-MAX_PAGES = 2
+MAX_PAGES = 10
 
 def grab_results():
     params = {"verb": "ListRecords", "set": "math", "metadataPrefix": "arXiv"}
