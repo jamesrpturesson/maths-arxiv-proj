@@ -29,6 +29,7 @@ def strip_record(record):
 
     return{
         "id" : arxiv.findtext(f"{ARX}id"),
+        "title" : arxiv.findtext(f"{ARX}title") or "",
         "created" : arxiv.findtext(f"{ARX}created"),
         "categories" : cats,
         "primary" : cats[0] if cats else None,

@@ -9,28 +9,34 @@ print("Hello arXiv!")
 BASE = "https://oaipmh.arxiv.org/oai"
 OA = "{http://www.openarchives.org/OAI/2.0/}"
 ARX = "{http://arxiv.org/OAI/arXiv/}"
-user = "maths-arxiv-proj/0.1"
+user = "maths-arxiv-proj/0.2"
 
 RESULTS = Path("results")
 RESULTS.mkdir(exist_ok=True)
 CATEGORIES = Path("categories")
 CATEGORIES.mkdir(exist_ok=True)
 
-MAX_PAGES = 10
+MAX_PAGES = 512
 
 def grab_results():
-    params = {"verb": "ListRecords", "set": "math", "metadataPrefix": "arXiv"}
+    params = {"verb": "ListRecords", "set": "math:math", "metadataPrefix": "arXiv"}
     page = 0
     while True:
         print(f"Fetching page {page}")
-        r = requests.get(
-            BASE, 
-            params=params,
-            headers={"User-Agent": user},
-            timeout=40
-        )
-
+        try:
+            r = requests.get(
+                BASE, 
+                params=params,
+                headers={"User-Agent": user},
+                timeout=(15,200)
+            )
+        except requests.exceptions.RequestException as e:
+            print(f"Exception thrown: {type(e).__name__}")
+        print(r.status_code)
         r.raise_for_status()
+
+
+        r.encoding = "utf-8"
         root = ET.fromstring(r.text)
         yield r.text
         page += 1
@@ -55,27 +61,13 @@ def clear_results():
 
 def generate_results():
     clear_results()
-    for i, txml in enumerate(grab_results()):
+    for i, txml in enumerate(grab_results(), start=0):
         path = RESULTS / f"results-{i:04d}.xml"
         print(f"Writing to results-{i:04d}.xml")
         with open(path, "w", encoding="utf-8") as rf:
             rf.write(txml)
     print("Finished writing results. ")
     print(f"Wrote {len(list(RESULTS.glob("results-*.xml")))} files.")
-
-    #record_list = root.findall(f".//{OA}record")
-    #spec_counter = Counter()
-    #cat_counter = Counter()
-    #for record in record_list:
-    #    #print("SPECS")
-    #    record_specs = record.findall(f".//{OA}setSpec")
-    #    for spec in record_specs:
-    #        spec_counter[spec.text] += 1/len(record_specs)
-    #    #print("\n")
-    #    record_cats = record.findall(f".//{ARX}categories")
-    #    rc_split = record_cats[0].text.split()
-    #    for cat in rc_split:
-    #        cat_counter[cat] += 1/len(rc_split)
 
 def grab_list_set():
     params = {"verb": "ListSets"}
@@ -125,6 +117,3 @@ def generate_list_set():
     print("Writing to categories.json")
     with open(path, "w", encoding="utf-8") as cf:
         json.dump(cat_dict, cf, indent=2, ensure_ascii=False)
-
-generate_results()
-generate_list_set()

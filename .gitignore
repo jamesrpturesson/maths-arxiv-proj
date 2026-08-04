@@ -3,3 +3,4 @@ __pycache__/
 results/
 categories/
 records.jsonl
+authors.json
