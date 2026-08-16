@@ -7,7 +7,7 @@ from pathlib import Path
 # generates a JSON file with records for each author.
 # Current data:
 #   - Number of papers
-#
+#   - Categories written in
 # ToDo:
 #   - Category Weights
 #   - Top Collaborators
@@ -52,29 +52,36 @@ def group_by_author(cntr):
 def count_papers():
     papers = Counter() # counter for number of papers
     listed_cats = Counter() # counter for categories of papers
+    listed_authors = Counter()
     display = {}
 
     for rec in load_records():
         rec_cats = {canonical(cat) for cat in rec.get("categories", [])}
+        rec_auth = {author_key(a) for a in rec["authors"]}
 
         for a in rec["authors"]:
             key = author_key(a)
             papers[key] += 1 #add 1 count to papers for each author that appears in record
             for cat in rec_cats:
                 listed_cats[(key, cat)] += 1
+            for auth in rec_auth:
+                if auth != key:
+                    listed_authors[(key, auth)] += 1
             display.setdefault(key, f"{a.get("forenames") or ""} {a.get("keyname") or ""}".strip())
     
-    return papers, listed_cats, display
+    return papers, listed_cats, listed_authors, display
 
 ## Calls the functions to gather author data and then dump to file.
 def generate_author_list():
-    papers, listed_cats, display = count_papers()
+    papers, listed_cats, listed_authors, display = count_papers()
     cats = group_by_author(listed_cats)
+    auths = group_by_author(listed_authors)
     data = {
         key: {
             "name": display[key],
             "papers": n,
-            "categories": cats.get(key, {})
+            "categories": cats.get(key, {}),
+            "collaborators": auths.get(key, {})
         }
         for key, n in papers.most_common()
     }
