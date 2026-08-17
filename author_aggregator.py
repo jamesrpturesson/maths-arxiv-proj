@@ -8,9 +8,9 @@ from pathlib import Path
 # Current data:
 #   - Number of papers
 #   - Categories written in
+#   - Top Collaborators
 # ToDo:
 #   - Category Weights
-#   - Top Collaborators
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
