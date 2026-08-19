@@ -5,7 +5,7 @@ Weight = float
 
 class Graph:
 
-    __slots__ = (_verts) 
+    __slots__ = ("_verts") 
     # The _verts dict keeps the edges data by referencing the neighbour to each vert.
     # This decision has been made in order to keep the data tied with one truth.
     # A member v of _vert is a vertex (which is any hashable object)
@@ -13,7 +13,7 @@ class Graph:
     # The weight of an edge s -> t is given by _vert[s][t]
 
     def __init__(self, vertices : Iterable[Vertex] = (), edges : Iterable[Sequence] = ()) -> None:
-        _verts : dict[Vertex, dict[Vertex, Weight]] = {} #Initialise _verts
+        self._verts : dict[Vertex, dict[Vertex, Weight]] = {} #Initialise _verts
         self.add_vertices(vertices)
         self.add_edges(edges)
 
@@ -21,15 +21,21 @@ class Graph:
         """Returns the tuple of vertices."""
         return tuple(self._verts)
     
+    def edges(self) -> Iterator[tuple[Vertex, Vertex, Weight]]:
+        checked : set[Vertex] = set()
+        for src, adjs in self._verts.items():
+            for trgt, wght in adjs.items():
+                if trgt not in checked:
+                    yield (src, trgt, wght)
+            checked.add(src)
+    
     def order(self) -> int:
         """Returns the number of vertices."""
         return len(self._verts)
     
     def size(self) -> int:
         """Returns the number of edges"""
-        pass
-        # Need to create a edges method which returns an interator of the edges
-        # return sum(1 for e in self.edges())
+        return sum(1 for e in self.edges())
     
     def __iter__(self) -> Iterator[Vertex]:
         return iter(self._verts)
@@ -93,4 +99,10 @@ class Graph:
     def remove_vertex(self, vert : Vertex) -> None:
         if not has_vertex(self, vert):
             raise KeyError(f"No vertex {vert}.")
-        ## remove vertex -vert- after removing all edges depending on it
+        ## remove vertex -vert- after removing all edges out of it
+        for v in self._verts[vert]:
+            self._verts[v].pop(vert, None)
+        del self._verts[vert]
+
+G = Graph([2,1], [[1,1], [1,2]])
+print(G.order(), G.size())
