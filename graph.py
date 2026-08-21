@@ -5,7 +5,7 @@ Weight = float
 
 class Graph:
 
-    __slots__ = ("_verts") 
+    __slots__ = ("_verts", "_out_data", "_in_data", "_directed") 
     # The _verts dict keeps the edges data by referencing the neighbour to each vert.
     # This decision has been made in order to keep the data tied with one truth.
     # A member v of _vert is a vertex (which is any hashable object)
@@ -45,10 +45,17 @@ class Graph:
     
     def __repr__(self) -> str:
         return "Graph"
+    
+    def degree(self, vert : Vertex) -> Weight:
+        if self.has_vertex(vert):
+            return sum(self._verts[vert].values()) + self._verts[vert].get(vert, 0.0)
+        else:
+            raise KeyError(f"No vertex {vert} found.")
 
     def add_vertex(self, vert : Vertex) -> None:
         if vert not in self._verts:
             self._verts[vert] = {} #add a vertex with no neighbours
+            
     
     def add_vertices(self, verts : Iterable[Vertex]) -> None:
         for vert in verts:
@@ -103,6 +110,25 @@ class Graph:
         for v in self._verts[vert]:
             self._verts[v].pop(vert, None)
         del self._verts[vert]
+    
+    def adjacency_matrix(self) -> list[list[Weight]]:
+        indx = {v : i for i, v in enumerate(self._verts)}
+        n = len(indx)
+        A = [[0.0] * n for i in range(n)]
+        for src, adjs in self._verts.items():
+            row = A[indx[src]]
+            for trgt, wght in adjs.items():
+                row[indx[trgt]] = wght
+        return A
+    
+    def degree_matrix(self) -> list[list[Weight]]:
+        n = len(self._verts)
+        D = [[0.0] * n for i in range(n)]
+        for i, vert in enumerate(self._verts):
+            D[i][i] = self.degree(vert)
+        return D
 
-G = Graph([2,1], [[1,1], [1,2]])
+G = Graph(["v","u"], [[1,1], [1,2]])
 print(G.order(), G.size())
+print(G.adjacency_matrix())
+print(G.degree_matrix())
